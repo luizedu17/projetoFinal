@@ -1,11 +1,11 @@
 #include "figurageometrica.h"
 
-GeometricFigure::GeometricFigure()
+FiguraGeometrica::FiguraGeometrica()
 {
 
 }
 
-GeometricFigure::~GeometricFigure()
+FiguraGeometrica::~FiguraGeometrica()
 {
 
 }
