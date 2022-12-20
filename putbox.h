@@ -2,17 +2,16 @@
 #define PUTBOX_H
 #include "figurageometrica.h"
 
-class PutBox : public GeometricFigure
+class PutBox :
+    public FiguraGeometrica
 {
-protected:
-    int x0, x1, y0, y1, z0, z1;
-    float r, g, b, a;
+
+    int	p_x0, p_y0, p_z0, p_x1, p_y1, p_z1;
+    float p_r, p_g, p_b, p_a;
+
 public:
-
-    PutBox(int _x0, int _x1, int _y0, int _y1, int _z0, int _z1, float _r, float _g, float _b, float _a);
-    ~PutBox();
-
-    void draw(Sculptor &t);
+    PutBox(int x0, int y0, int z0, int x1, int y1, int z1, float r, float g, float b, float a);
+    void draw(Sculptor& t);
 };
 
 #endif // PUTBOX_H
