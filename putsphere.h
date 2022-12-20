@@ -2,17 +2,15 @@
 #define PUTSPHERE_H
 #include "figurageometrica.h"
 
-class PutSphere : public GeometricFigure
+class PutSphere :
+    public FiguraGeometrica
 {
-protected:
-    int xcenter, ycenter, zcenter, radius;
-    float r, g, b, a;
+    int p_x0, p_y0, p_z0, p_rd;
+    float p_r, p_g, p_b, p_a;
+
 public:
-
-    PutSphere(int _xcenter, int _ycenter, int _zcenter, int _radius, float _r, float _g, float _b, float _a);
-    ~PutSphere();
-
-    void draw(Sculptor &t);
+    PutSphere(int x0, int y0, int z0, int rd, float r, float g, float b, float a);
+    void draw(Sculptor& t);
 };
 
 #endif // PUTSPHERE_H
