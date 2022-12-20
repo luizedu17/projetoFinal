@@ -2,16 +2,13 @@
 #define CUTELLIPSOID_H
 #include "figurageometrica.h"
 
-class CutEllipsoid : public GeometricFigure
+class CutEllipsoid :
+    public FiguraGeometrica
 {
-protected:
-    int xcenter, ycenter,  zcenter,  rx,  ry, rz;
+    int	p_x0, p_y0, p_z0, p_rdX, p_rdY, p_rdZ;
 public:
-
-    CutEllipsoid(int _xcenter, int _ycenter, int _zcenter, int _rx, int _ry, int _rz);
-    ~CutEllipsoid();
-
-    void draw(Sculptor &t);
+    CutEllipsoid(int x0, int y0, int z0, int rdX, int rdY, int rdZ);
+    void draw(Sculptor& t);
 };
 
 #endif // CUTELLIPSOID_H
