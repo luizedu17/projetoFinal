@@ -2,16 +2,14 @@
 #define CUTBOX_H
 #include "figurageometrica.h"
 
-class CutBox : public GeometricFigure
+
+class CutBox :
+    public FiguraGeometrica
 {
-protected:
-    int x0, x1, y0, y1, z0, z1;
+    int	p_x0, p_y0, p_z0, p_x1, p_y1, p_z1;
 public:
-
-    CutBox(int _x0, int _x1, int _y0, int _y1, int _z0, int _z1);
-    ~CutBox();
-
-    void draw(Sculptor &t);
+    CutBox(int x0, int y0, int z0, int x1, int y1, int z1);
+    void draw(Sculptor& t);
 };
 
 #endif // CUTBOX_H
