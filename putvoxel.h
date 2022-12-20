@@ -2,17 +2,16 @@
 #define PUTVOXEL_H
 #include "figurageometrica.h"
 
-class PutVoxel : public GeometricFigure
+class PutVoxel :
+    public FiguraGeometrica
 {
-protected:
-    int x, y, z;
-    float r, g, b, a;
+    int p_x, p_y, p_z;
+    float p_r, p_g, p_b, p_a;
+
 public:
-
-    PutVoxel(int _x, int _y, int _z, float _r, float _g, float _b, float _a);
+    PutVoxel(int x, int y, int z, float r, float g, float b, float a);
+    void draw(Sculptor& t);
     ~PutVoxel();
-
-    void draw(Sculptor &t);
 };
 
 #endif // PUTVOXEL_H
