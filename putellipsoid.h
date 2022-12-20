@@ -2,17 +2,15 @@
 #define PUTELLIPSOID_H
 #include "figurageometrica.h"
 
-class PutEllipsoid : public GeometricFigure
+class PutEllipsoid :
+    public FiguraGeometrica
 {
-protected:
-    int xcenter, ycenter, zcenter, rx, ry, rz;
-    float r, g, b, a;
+    int	p_x0, p_y0, p_z0, p_rdX, p_rdY, p_rdZ;
+    float p_r, p_g, p_b, p_a;
+
 public:
-
-    PutEllipsoid(int _xcenter, int _ycenter, int _zcenter, int _rx, int _ry, int _rz, float _r, float _g, float _b, float _a);
-    ~PutEllipsoid();
-
-    void draw(Sculptor &t);
+    PutEllipsoid(int x0, int y0, int z0, int rdX, int rdY, int rdZ, float r, float g, float b, float a);
+    void draw(Sculptor& t);
 };
 
 #endif // PUTELLIPSOID_H
