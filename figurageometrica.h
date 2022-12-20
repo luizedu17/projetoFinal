@@ -1,14 +1,13 @@
-#ifndef GEOMETRICFIGURE_H
-#define GEOMETRICFIGURE_H
-
+#ifndef FIGURAGEOMETRICA_H
+#define FIGURAGEOMETRICA_H
 #include "sculptor.h"
 
-class GeometricFigure
+class FiguraGeometrica
 {
 public:
-  GeometricFigure();
-  virtual ~GeometricFigure();
-  virtual void draw(Sculptor &t)=0;
+    FiguraGeometrica();
+    virtual void draw(Sculptor& t) = 0;
+    virtual ~FiguraGeometrica();
 };
 
-#endif // GEOMETRICFIGURE_H
+#endif // FIGURAGEOMETRICA_H
