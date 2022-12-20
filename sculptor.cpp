@@ -1,217 +1,282 @@
 #include "sculptor.h"
-#include <vector>
+#include <cstdlib>		// for exit()
+#include <iostream>		// for std::cout std::cerr
+#include <string>		//for std::string
+#include <fstream>		//for std::ofstream
+#include <algorithm>	// for std::swap()
+using namespace std;
 
-Sculptor::Sculptor()
+/*
+Método para criar matriz 3d alocada dinamicamente com padrão inicializado _nx, _ny e _nz = 20, que será o tamanho máximo da "escultura" em seus eixos.
+*/
+
+Sculptor::Sculptor(int _nx, int _ny, int _nz) : r(0.5), g(0.5), b(0.5), a(0.5)
 {
+    _nx = 20;
+    _ny = 20;
+    _nz = 20;
+    int i;
 
-}
+    if (_nx <= 0 || _ny <= 0 || _nz <= 0) cout << "Valores de dimensão inválidos, criando escultura padrão.";
+    if (_nx <= 0) _nx = 2;
+    if (_ny <= 0) _ny = 2;
+    if (_nz <= 0) _nz = 2;
 
-Sculptor::Sculptor(int _nx, int _ny, int _nz)
-{
-    //Número de linhas, colunas e planos
-    nx=_nx;
-    ny=_ny;
-    nz=_nz;
+    nx = _nx;
+    ny = _ny;
+    nz = _nz;
 
-    //Alocação dinâmica
-    v = new Voxel**[nx];
-    v[0] = new Voxel*[nx*ny];
-    v[0][0]= new Voxel[nx*ny*nz];
 
-    for(int i=0; i< nx; i++)
-    {
-        v[i+1] = v[i]+ny;
-        for(int j= 0; j<ny;j++){
-            v[i][j+1] = v[i][j]+nz;
-        }
+    v = new Voxel**[_nx];
+    v[0] = new Voxel*[_nx*_ny];
+    v[0][0] = new Voxel[_nx*_ny*_nz];
+
+    if (!(v && v[0] && v[0][0])) {
+        cerr << "Impossível alocar espaco de escultura.\n";
+        exit(1);
     }
 
-    for(int i = 0; i < nx; i++){
-        for(int j = 0; j < ny; j++){
-            for(int k = 0; k < nz; k++){
+
+    for (i = 1; i < nz; i++) {
+        v[i] = v[i - 1] + ny;
+    }
+    for (i = 1; i < nz*ny; i++) {
+        v[0][i] = v[0][i - 1] + nx;
+    }
+
+    for (int i = 0; i < nz; i++) {
+        for (int j = 0; j < ny; j++) {
+            for (int k = 0; k < nx; k++) {
+                v[i][j][k].r = r;
+                v[i][j][k].g = g;
+                v[i][j][k].b = b;
+                v[i][j][k].a = a;
                 v[i][j][k].isOn = false;
             }
         }
     }
+    cout << "Espaco de escultura criado.\n";
 }
 
+/*
+Método usado para desocupar o espaco alocado para a matriz 3d;
+*/
 
-//Destrutor
 Sculptor::~Sculptor(){
-    if(nx==0||ny==0||nz==0){
+    delete[] v[0][0];
+    delete[] v[0];
+    delete[] v;
+    cout << "Espaco desocupado.\n";
+}
+
+/*
+Método para atribuir cor e transparência/opacidade.
+r,g,b [0,1] correspondem à ausência total(0) ou presença total(1) dos componentes de cor vermelha, verde e azul respectivamente
+alpha [0,1] corresponde à transparência total(0) ou opacidade total(1)
+*/
+
+void Sculptor::setColor(float r, float g, float b, float alpha) {
+
+    if (r < 0) r = 0;
+    else if (r > 1) r = 1;
+
+    if (g < 0) g = 0;
+    else if (g > 1) g = 1;
+
+    if (b < 0) b = 0;
+    else if (b > 1) b = 1;
+
+    if (alpha < 0) alpha = 0;
+    else if (alpha > 1) alpha = 1;
+
+    this->r = r;
+    this->g = g;
+    this->b = b;
+    this->a = alpha;
+}
+
+void Sculptor::putVoxel(int z, int y, int x) {
+
+    v[z][y][x].isOn = true;
+    v[z][y][x].r = r;
+    v[z][y][x].g = g;
+    v[z][y][x].b = b;
+    v[z][y][x].a = a;
+}
+
+void Sculptor::cutVoxel(int z, int y, int x) {
+ {
         return;
     }
-    delete [] v[0][0];
-    delete [] v[0];
-    delete [] v;
+
+    v[z][y][x].isOn = false;
 }
 
+void Sculptor::putBox(int x0, int x1, int y0, int y1, int z0, int z1) {
 
-void Sculptor::setColor(float red, float green, float blue, float alpha)
-{
-    r = red;
-    g = green;
-    b = blue;
-    a = alpha;
-}
-
-void Sculptor::putVoxel(int x, int y, int z)
-{
-    v[x][y][z].isOn = true;
-    v[x][y][z].r = r;
-    v[x][y][z].g = g;
-    v[x][y][z].b = b;
-    v[x][y][z].a = a;
-
-}
-
-void Sculptor::cutVoxel(int x, int y, int z)
-{
-
-     v[x][y][z].isOn = false;
-}
-
-int Sculptor::getNx()
-{
-    return nx;
-}
-
-int Sculptor::getNy()
-{
-    return ny;
-}
-
-int Sculptor::getNz()
-{
-    return nz;
-}
-
-vector<vector<Voxel>> Sculptor::planeXY(float zFactor)
-{
-    int z0 = int(nz*zFactor);
-
-    vector<vector<Voxel>> plane;
-    vector<Voxel> line;
-    for(int i = 0; i<nx; i++){
-        for(int j = 0; j<ny; j++){
-            line.push_back(v[i][j][z0]);
+    int i, j, k;
+    for (i = z0; i < z1; i++) {
+        for (j = y0; j < y1; j++) {
+            for (k = x0; k < x1; k++) {
+                v[i][j][k].isOn = true;
+                v[i][j][k].r = r;
+                v[i][j][k].g = g;
+                v[i][j][k].b = b;
+            }
         }
-        plane.push_back(line);
-        line.clear();
+    }
+}
+
+void Sculptor::cutBox(int x0, int x1, int y0, int y1, int z0, int z1) {
+
+    int i, j, k;
+    for (i = z0; i < z1; i++) {
+        for (j = y0; j < y1; j++) {
+            for (k = x0; k < x1; k++) {
+                cutVoxel(i, j, k);
+            }
+        }
+    }
+}
+
+void Sculptor::putSphere(int xcenter, int ycenter, int zcenter, int radius) {
+
+    int i, j, k;
+    float DisX, DisY, DisZ;
+
+    for (i = 0; i < nz; i++) {
+        DisZ = ((float)(i - zcenter)) / ((float)(radius));
+        for (j = 0; j < ny; j++) {
+            DisY = ((float)(j - ycenter)) / ((float)(radius));
+            for (k = 0; k < nx; k++) {
+                DisX = ((float)(k - xcenter)) / ((float)(radius));
+                if ((DisX*DisX + DisY * DisY + DisZ * DisZ) <= 1.00) {
+                    putVoxel(i, j, k);
+                }
+            }
+        }
+    }
+}
+
+void Sculptor::cutSphere(int xcenter, int ycenter, int zcenter, int radius) {
+
+    int i, j, k;
+    double DisX, DisY, DisZ;
+
+    for (i = 0; i < nz; i++) {
+        DisZ = ((double)(i - zcenter)) / (double)(radius);
+
+        for (j = 0; j < ny; j++) {
+            DisY = ((double)(j - ycenter)) / (double)(radius);
+
+            for (k = 0; k < nx; k++) {
+                DisX = ((double)(k - xcenter)) / (double)(radius);
+                if (((DisX*DisX + DisY * DisY + DisZ * DisZ) <= 1.00)) {
+                    cutVoxel(i, j, k);
+                }
+            }
+        }
+    }
+}
+
+void Sculptor::putEllipsoid(int xcenter, int ycenter, int zcenter, int rx, int ry, int rz) {
+
+    int i, j, k;
+    double DisX, DisY, DisZ;
+
+    for (i = 0; i < nz; i++) {
+        DisZ = ((double)(i - zcenter)) / (double)(rz);
+        for (j = 0; j < ny; j++) {
+            DisY = ((double)(j - ycenter)) / (double)(ry);
+            for (k = 0; k < nx; k++) {
+                DisX = ((double)(k - xcenter)) / (double)(rx);
+                if (((DisX*DisX + DisY * DisY + DisZ * DisZ) <= 1.00)) {
+                    putVoxel(i, j, k);
+                }
+            }
+        }
+    }
+}
+
+void Sculptor::cutEllipsoid(int xcenter, int ycenter, int zcenter, int rx, int ry, int rz) {
+
+    int i, j, k;
+    double DisX, DisY, DisZ;
+
+    for (i = 0; i < nz; i++) {
+        DisX = ((double)(i - zcenter)) / (double)(rz);
+        for (j = 0; j < ny; j++) {
+            DisY = ((double)(j - ycenter)) / (double)(ry);
+            for (k = 0; k < nx; k++) {
+
+                DisZ = ((double)(k - xcenter)) / (double)(rx);
+                if ((DisX*DisX + DisY * DisY + DisZ * DisZ) <= 1.00) {
+                    cutVoxel(i, j, k);
+                }
+            }
+        }
+    }
+}
+
+void Sculptor::writeOFF(char* filename){
+
+    std::ofstream ofile;
+
+    ofile.open(filename);
+    int countVox = 0;
+    int face=0;
+    int nfacs = 0;
+
+    if (!ofile.is_open()) {
+        std::cerr << "Erro ao salvar arquivo .off\n";
+        return;
     }
 
-    return plane;
-}
+    ofile << "OFF ";
 
+    for (int i = 0; i < nz; i++)
+        for (int j = 0; j < ny; j++)
+            for (int k = 0; k < nx; k++)
+                if (v[i][j][k].isOn)
+                    countVox++;
 
-/*!
- * \brief Implementa a função para escrever o arquivo off.
- * \param filename
- */
-void Sculptor::writeOFF(string filename){
+    ofile << 8 * countVox << " " << 6 * countVox << " 0\n";
 
-    ofstream fout;
-    fout.open(filename);
-    //Primeira linha do arquivo
-    fout<<"OFF"<<endl;
-    int voxel=0;
-
-    char aux[nx][ny][nz];
-
-    for(int i=0;i<nx;i++){
-        for(int j=0;j<ny;j++){
-            for (int k=0;k<nz;k++) {
-                if(v[i][j][k].isOn)
-                {
-                    aux[nx][ny][nz]=0;
+    for (int k = 0; k < nz; k++) {
+        for (int j = 0; j < ny; j++) {
+            for (int i = 0; i < nx; i++) {
+                if (v[k][j][i].isOn) {
+                  ofile << i - 0.5 << " " << j + 0.5 << " " << k - 0.5 << "\n"
+                        << i - 0.5 << " " << j - 0.5 << " " << k - 0.5 << "\n"
+                        << i + 0.5 << " " << j - 0.5 << " " << k - 0.5 << "\n"
+                        << i + 0.5 << " " << j + 0.5 << " " << k - 0.5 << "\n"
+                        << i - 0.5 << " " << j + 0.5 << " " << k + 0.5 << "\n"
+                        << i - 0.5 << " " << j - 0.5 << " " << k + 0.5 << "\n"
+                        << i + 0.5 << " " << j - 0.5 << " " << k + 0.5 << "\n"
+                        << i + 0.5 << " " << j + 0.5 << " " << k + 0.5 << "\n";
                 }
             }
         }
     }
 
-    bool auxx, auxy, auxz;
-
-    for(int i=1;i<nx-1;i++){
-        for(int j=1;j<ny-1;j++){
-            for (int k=1;k<nz-1;k++){
-                auxx=false; auxy=false; auxz=false;
-                if(v[i+1][j][k].isOn && v[i-1][j][k].isOn){
-                    auxx=true;
-                }
-                if(v[i][j+1][k].isOn && v[i][j-1][k].isOn){
-                    auxy=true;
-                }
-                if(v[i][j][k+1].isOn && v[i][j][k-1].isOn){
-                    auxx=true;
-                }
-                if(auxx && auxy && auxz){
-                    aux[i][j][k]=1;
-                }
-            }
-        }
-    }
-    //O loop está contando o número de voxels ativos
-    for(int i=0;i<nx;i++){
-        for(int j=0;j<ny;j++){
-            for (int k=0;k<nz;k++) {
-                if(v[i][j][k].isOn && aux[i][j][k]==0)
-                {
-                    voxel++;
+    for (int i = 0; i < nz; i++) {
+        for (int j = 0; j < ny; j++) {
+            for (int k = 0; k < nx; k++) {
+                if (v[i][j][k].isOn) {
+                    face = 8 * nfacs;
+                    ofile << "4 " << face + 0 << " " << face + 3 << " " << face + 2 << " " << face + 1 << " " << v[i][j][k].r << " " << v[i][j][k].g << " " << v[i][j][k].b << " " << v[i][j][k].a << "\n"
+                        << "4 " << face + 4 << " " << face + 5 << " " << face + 6 << " " << face + 7 << " " << v[i][j][k].r << " " << v[i][j][k].g << " " << v[i][j][k].b << " " << v[i][j][k].a << "\n"
+                        << "4 " << face + 0 << " " << face + 1 << " " << face + 5 << " " << face + 4 << " " << v[i][j][k].r << " " << v[i][j][k].g << " " << v[i][j][k].b << " " << v[i][j][k].a << "\n"
+                        << "4 " << face + 0 << " " << face + 4 << " " << face + 7 << " " << face + 3 << " " << v[i][j][k].r << " " << v[i][j][k].g << " " << v[i][j][k].b << " " << v[i][j][k].a << "\n"
+                        << "4 " << face + 3 << " " << face + 7 << " " << face + 6 << " " << face + 2 << " " << v[i][j][k].r << " " << v[i][j][k].g << " " << v[i][j][k].b << " " << v[i][j][k].a << "\n"
+                        << "4 " << face + 1 << " " << face + 2 << " " << face + 6 << " " << face + 5 << " " << v[i][j][k].r << " " << v[i][j][k].g << " " << v[i][j][k].b << " " << v[i][j][k].a << "\n";
+                    nfacs++;
                 }
             }
         }
     }
 
-    /*Segunda linha do arquivo. Mútiplica a quantidade total de voxels
-     * pelo número de vértices e faces de um único cubo para obter a
-     * quantidade total de vértices e faces presentes no desenho.
-    */
-    fout<<voxel*8<<" "<<voxel*6<<" "<<endl;
-    /*Para todo voxel ativo, o laço calcula a posição dos seus 8
-     * vértices. Olhar resumo (Figura 3).
-    */
-    for (int i=0;i<nx;i++) {
-        for (int j=0;j<ny;j++) {
-            for (int k=0;k<nz;k++) {
-                if(v[i][j][k].isOn){
-                    fout<<-0.5+i<<" "<<0.5+j<<" "<<-0.5+k<<endl;
-                    fout<<-0.5+i<<" "<<-0.5+j<<" "<<-0.5+k<<endl;
-                    fout<<0.5+i<<" "<<-0.5+j<<" "<<-0.5+k<<endl;
-                    fout<<0.5+i<<" "<<0.5+j<<" "<<-0.5+k<<endl;
-                    fout<<-0.5+i<<" "<<0.5+j<<" "<<0.5+k<<endl;
-                    fout<<-0.5+i<<" "<<-0.5+j<<" "<<0.5+k<<endl;
-                    fout<<0.5+i<<" "<<-0.5+j<<" "<<0.5+k<<endl;
-                    fout<<0.5+i<<" "<<0.5+j<<" "<<0.5+k<<endl;
-                }
-            }
-        }
-    }
+    ofile.close();
+    cout << "Arquivo .off criado.\n";
 
-    /*O primeiro número de cada linha simboliza quantos vértices são necessários
-     *para formar uma face, os quatro números em seguida representam os vértices
-     * que formam uma determinada face. Os quatro números finais de cada linha
-     * simbolizam a cor e a tranaparência de cada voxel. Ao incrementar o valor
-     * vértice por 8 toda vez que um voxel ativo for encontrado, impede-se que
-     * existam linhas com os mesmos valores. Cada voxel terá seus próprios valores
-     * de vértice.
-    */
-
-    int vertice=0;
-    for (int i=0;i<nx;i++) {
-        for (int j=0;j<ny;j++) {
-            for (int k=0;k<nz;k++) {
-                if(v[i][j][k].isOn){
-                    fout<<"4 "<<vertice+0<<" "<<vertice+3<<" "<<vertice+2<<" "<<vertice+1<<" "<<v[i][j][k].r<<" "<<v[i][j][k].g<<" "<<v[i][j][k].b<<" "<<v[i][j][k].a<<endl;
-                    fout<<"4 "<<vertice+4<<" "<<vertice+5<<" "<<vertice+6<<" "<<vertice+7<<" "<<v[i][j][k].r<<" "<<v[i][j][k].g<<" "<<v[i][j][k].b<<" "<<v[i][j][k].a<<endl;
-                    fout<<"4 "<<vertice+0<<" "<<vertice+1<<" "<<vertice+5<<" "<<vertice+4<<" "<<v[i][j][k].r<<" "<<v[i][j][k].g<<" "<<v[i][j][k].b<<" "<<v[i][j][k].a<<endl;
-                    fout<<"4 "<<vertice+0<<" "<<vertice+4<<" "<<vertice+7<<" "<<vertice+3<<" "<<v[i][j][k].r<<" "<<v[i][j][k].g<<" "<<v[i][j][k].b<<" "<<v[i][j][k].a<<endl;
-                    fout<<"4 "<<vertice+3<<" "<<vertice+7<<" "<<vertice+6<<" "<<vertice+2<<" "<<v[i][j][k].r<<" "<<v[i][j][k].g<<" "<<v[i][j][k].b<<" "<<v[i][j][k].a<<endl;
-                    fout<<"4 "<<vertice+1<<" "<<vertice+2<<" "<<vertice+6<<" "<<vertice+5<<" "<<v[i][j][k].r<<" "<<v[i][j][k].g<<" "<<v[i][j][k].b<<" "<<v[i][j][k].a<<endl;
-
-                    vertice+=8;
-                }
-            }
-        }
-    }
-    fout.close();
 }
